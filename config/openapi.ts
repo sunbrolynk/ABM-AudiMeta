@@ -27,19 +27,13 @@ export default defineConfig({
         '- Authors: Find author profiles, see all their books, and look through their list of works.\n' +
         '- Series: Explore audiobook series and see every title in a series.\n' +
         '- Chapters: Get chapter information for each audiobook that has chapters.\n' +
-        '- Search: Quick and reliable search for books or authors, using Audible’s catalog.\n' +
-        '\n' +
-        'Note: AudiMeta never scrapes HTML data. Everything comes directly from Audible’s publicly accessible API information, including descriptions and author search, to make sure the metadata is current and reliable. This means there is currently no way to search for series using the Audible API.',
+        '- Search: Quick and reliable search for books or authors, using Audible’s catalog.\n',
     },
     servers: [
       {
-        url: 'http://10.10.0.160:3333',
+        url: 'https://manager.lostcartographer.xyz',
         description: 'Public Instance',
-      },
-      {
-        url: '',
-        description: 'Beta Instance',
-      },
+      }
     ],
   },
 })

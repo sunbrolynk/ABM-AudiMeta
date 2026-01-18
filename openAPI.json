@@ -3,7 +3,7 @@
     "info": {
         "title": "AudiMeta API",
         "version": "2.0.1",
-        "description": "AudiMeta API is a free, easy-to-use REST API that gives you access to audiobook metadata from Audible. It lets you search for books and authors, look up series, and get detailed information like descriptions and chapters—all pulled directly from Audible.\n\n### Key Features\n\n- **Books**  \n  - Get detailed info for any audiobook, or look up several titles at once.\n- **Authors**  \n  - Find author profiles, see all their books, and browse their bibliography.\n- **Series**  \n  - Explore audiobook series and view every title in a series.\n- **Chapters**  \n  - Access chapter data for each audiobook that has chapters.\n- **Search**  \n  - Fast, reliable search for books or authors, using Audible’s own catalog.\n \n> **Note:**  \n> AudiMeta never scrapes data. Everything comes directly from Audible’s public accessible API information, including descriptions and author search, to ensure current and reliable metadata. ",
+        "description": "AudiMeta API is a free, easy-to-use REST API that gives you access to audiobook metadata from Audible. It lets you search for books and authors, look up series, and get detailed information like descriptions and chapters—all pulled directly from Audible.\n\n### Key Features\n\n- **Books**  \n  - Get detailed info for any audiobook, or look up several titles at once.\n- **Authors**  \n  - Find author profiles, see all their books, and browse their bibliography.\n- **Series**  \n  - Explore audiobook series and view every title in a series.\n- **Chapters**  \n  - Access chapter data for each audiobook that has chapters.\n- **Search**  \n  - Fast, reliable search for books or authors, using Audible’s own catalog.",  
         "termsOfService": "https://github.com/sunbrolynk/AudiMeta/blob/master/PRIVACYPOLICY.md",
         "contact": {
             "name": "Vito0912",
@@ -15,12 +15,8 @@
     },
     "servers": [
         {
-            "url": "http://10.10.0.160:3333",
+            "url": "https://manager.lostcartographer.xyz",
             "description": "Public Instance"
-        },
-        {
-            "url": "",
-            "description": "Public Beta Instance"
         }
     ],
     "paths": {

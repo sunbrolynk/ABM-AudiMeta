@@ -2,15 +2,15 @@
 
 **Last Updated:** 12.04.2025
 
-This Privacy Policy describes how AudiMeta ("we," "us," or "our") collects, uses, and shares information when you use our Application Programming Interface (AudiMeta API) hosted at https://audimeta.de.
+This Privacy Policy describes how AudiMeta ("we," "us," or "our") collects, uses, and shares information when you use our Application Programming Interface (AudiMeta API) hosted at .
 
 By using the API, you agree to the collection and use of information in accordance with this policy.
 
 **1. Data Controller**
 
 The data controller responsible for your information is:
-AudiMeta
-fito0912@duck.com
+SunBroLynk
+swagar003@gmail.com
 
 **2. Information We Collect**
 
@@ -90,8 +90,8 @@ We may update our Privacy Policy from time to time. We will notify you of any ch
 **11. Contact Us**
 
 If you have any questions about this Privacy Policy, please contact us:
-AudiMeta
-fito0912@duck.com
-https://audimeta.de
+SunBroLynk
+swagar003@gmail.com
+https://
 
-To view the Imprint, please visit https://dittmar-ldk.de
+To view the Imprint, please visit https://
