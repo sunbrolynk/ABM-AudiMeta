@@ -196,44 +196,27 @@ if (response.status === 200) {
     const startTime = DateTime.now()
     const ctx = HttpContext.get()
     
-    // Paginate through all results
-    const pageSize = 50
-    let page = 1
-    let hasMore = true
+    // Use catalog search by author name (more reliable than ASIN)
+    const response = await axios.get(
+      `https://api.audible${regionMap[payload.region]}/1.0/catalog/products`,
+      {
+        headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
+        params: {
+          author: author.name,
+          num_results: 50,
+          response_groups: 'product_desc,contributors,series,product_attrs',
+          sort_by: '-ReleaseDate'
+        }
+      }
+    )
     
-    while (hasMore && page <= 20) { // Cap at 20 pages (1000 books max) for safety
-      const response = await axios.get(
-        `https://api.audible${regionMap[payload.region]}/1.0/catalog/products`,
-        {
-          headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
-          params: {
-            author: author.name,
-            num_results: pageSize,
-            page: page,
-            response_groups: 'product_desc,contributors,series,product_attrs,media',
-            sort_by: '-ReleaseDate'
-          }
+    if (response.data?.products && response.data.products.length > 0) {
+      for (const product of response.data.products) {
+        // Verify the author ASIN matches to filter out false positives
+        const matchesAuthor = product.authors?.some((a: any) => a.asin === payload.asin)
+        if (product.asin && matchesAuthor && !asins.includes(product.asin)) {
+          asins.push(product.asin)
         }
-      )
-      
-      if (response.data?.products && response.data.products.length > 0) {
-        for (const product of response.data.products) {
-          // Verify the author ASIN matches to filter out false positives
-          const matchesAuthor = product.authors?.some((a: any) => a.asin === payload.asin)
-          // Filter to English only (language field is 'english', 'englisch', etc.)
-          const isEnglish = product.language?.toLowerCase().startsWith('english') || 
-                            product.language?.toLowerCase() === 'englisch'
-          
-          if (product.asin && matchesAuthor && isEnglish && !asins.includes(product.asin)) {
-            asins.push(product.asin)
-          }
-        }
-        
-        // If we got fewer than pageSize, we've reached the end
-        hasMore = response.data.products.length >= pageSize
-        page++
-      } else {
-        hasMore = false
       }
     }
 
@@ -241,7 +224,6 @@ if (response.status === 200) {
       void ctx.logger.info({
         message: `Requested Audible Author Books`,
         author_book_num: asins.length,
-        pages_fetched: page - 1,
         author_book_took: Math.abs(startTime.diffNow().as('milliseconds')),
       })
 
