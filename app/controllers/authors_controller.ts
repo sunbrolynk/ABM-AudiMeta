@@ -1,7 +1,7 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
 import { HttpContext } from '@adonisjs/core/http'
-import { getBasicValidator, paginationValidator, searchAuthorValidator } from '#validators/common'
+import { authorBookValidator, getBasicValidator, paginationValidator, searchAuthorValidator } from '#validators/common'
 import { AuthorHelper } from '../helper/author.js'
 import BookDto from '#dtos/book'
 import { AuthorDto } from '#dtos/author'
@@ -62,11 +62,10 @@ export default class AuthorsController {
   @limitApiQuery()
   @notFoundApiResponse()
   @successApiResponse({ type: [BookDto] })
-  async books({ request }: HttpContext) {
-    const payload = await paginationValidator.validate({ ...request.qs(), ...request.params() })
-
-    return BookDto.fromArray((await AuthorHelper.getBooksByAuthor(payload)) ?? [])
-  }
+async books({ request }: HttpContext) {
+  const payload = await authorBookValidator.validate({ ...request.qs(), ...request.params() })
+  return BookDto.fromArray((await AuthorHelper.getBooksByAuthor(payload)) ?? [])
+}
 
   @ApiOperation({
     summary: 'Search for authors',

@@ -184,11 +184,32 @@ if (response.status === 200) {
   static async getBooksByAuthor(
     payload: Infer<typeof authorBookValidator>
   ): Promise<Book[] | null> {
+    let authorName: string | null = null
+    
+    // Try to get author from database first
     let author = await Author.query().where('asin', payload.asin).first()
-    if (!author) {
-      author = await AuthorHelper.fetchFromAudible({ ...payload })
+    if (author) {
+      authorName = author.name
     }
-    if (!author) {
+    
+    // If not in DB, try to fetch from Audible author endpoint
+    if (!authorName) {
+      try {
+        author = await AuthorHelper.fetchFromAudible({ ...payload })
+        if (author) {
+          authorName = author.name
+        }
+      } catch (e) {
+        // Author endpoint failed, will try catalog search below
+      }
+    }
+    
+    // If still no name, use the name parameter if provided by caller
+    if (!authorName && payload.name) {
+      authorName = payload.name
+    }
+    
+    if (!authorName) {
       throw new NotFoundException()
     }
 
@@ -198,23 +219,20 @@ if (response.status === 200) {
     
     // Paginate through all results
     const pageSize = 50
-    let page = 1
+    let page = 0
     let hasMore = true
     
     while (hasMore && page <= 20) { // Cap at 20 pages (1000 books max) for safety
-      const response = await axios.get(
-        `https://api.audible${regionMap[payload.region]}/1.0/catalog/products`,
-        {
-          headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
-          params: {
-            author: author.name,
-            num_results: pageSize,
-            page: page,
-            response_groups: 'product_desc,contributors,series,product_attrs,media',
-            sort_by: '-ReleaseDate'
-          }
-        }
-      )
+      const requestUrl = `https://api.audible${regionMap[payload.region]}/1.0/catalog/products`
+      const requestHeaders = { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders }
+      const requestParams = {
+        author: authorName,
+        num_results: pageSize,
+        page: page,
+        response_groups: 'product_desc,contributors,series,product_attrs,media',
+        sort_by: '-ReleaseDate'
+      }
+      const response = await axios.get(requestUrl, { headers: requestHeaders, params: requestParams })
       
       if (response.data?.products && response.data.products.length > 0) {
         for (const product of response.data.products) {

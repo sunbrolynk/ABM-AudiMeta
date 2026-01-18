@@ -139,6 +139,7 @@ export const authorBookValidator = vine.compile(
     asin: asinValidation,
     region: regionValidation,
     cache: cacheValidation,
+    name: vine.string().minLength(1).optional(),
   })
 )
 
