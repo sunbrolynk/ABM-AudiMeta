@@ -15,9 +15,9 @@ export default defineConfig({
       version: process.env.npm_package_version || '1.0.0',
       contact: {
         name: 'Vito0912',
-        url: 'https://github.com/Vito0912/AudiMeta',
+        url: 'https://github.com/sunbrolynk/AudiMeta',
       },
-      termsOfService: 'https://github.com/Vito0912/AudiMeta/blob/v2/PRIVACYPOLICY.md',
+      termsOfService: 'https://github.com/sunbrolynk/AudiMeta/blob/v2/PRIVACYPOLICY.md',
       description:
         'AudiMeta API is a free and simple REST API that lets you get audiobook information from Audible. You can search for books and authors, find series, and get details like descriptions and chapters - all taken straight from Audible.\n' +
         '\n' +
@@ -33,11 +33,11 @@ export default defineConfig({
     },
     servers: [
       {
-        url: 'https://audimeta.de',
+        url: 'http://10.10.0.160:3333',
         description: 'Public Instance',
       },
       {
-        url: 'https://beta.audimeta.de',
+        url: '',
         description: 'Beta Instance',
       },
     ],

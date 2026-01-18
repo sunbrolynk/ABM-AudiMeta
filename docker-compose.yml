@@ -1,0 +1,146 @@
+# ===========================================
+# AudiMeta Self-Hosted Docker Compose
+# ===========================================
+# Location: /opt/audimeta/audimeta/docker-compose.yml
+# ===========================================
+
+services:
+  # ===========================================
+  # AudiMeta Application
+  # ===========================================
+  audimeta:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audimeta
+    restart: unless-stopped
+    
+    ports:
+      - "3333:3333"
+    
+    environment:
+      TZ: America/Denver
+      HOST: 0.0.0.0
+      PORT: 3333
+      NODE_ENV: production
+      LOG_LEVEL: info
+      APP_KEY: ${APP_KEY}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-audimeta}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE:-audimeta}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      LIMITER_STORE: redis
+      RATE_SEARCH: ${RATE_SEARCH:-}
+      RATE_ITEM: ${RATE_ITEM:-}
+      RATE_EXTREME: ${RATE_EXTREME:-}
+      RATE_CACHE: ${RATE_CACHE:-}
+      RATE_SERIES: ${RATE_SERIES:-}
+      DEVICE_ID: ${DEVICE_ID:-}
+      AXIOM_DATASET: ${AXIOM_DATASET:-}
+      AXIOM_TOKEN: ${AXIOM_TOKEN:-}
+      BLACKLISTED_USER_AGENTS: ${BLACKLISTED_USER_AGENTS:-}
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3333/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    
+    networks:
+      - audimeta-network
+
+  # ===========================================
+  # PostgreSQL Database
+  # ===========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: audimeta-postgres
+    restart: unless-stopped
+    
+    environment:
+      POSTGRES_USER: ${DB_USER:-audimeta}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE:-audimeta}
+      TZ: America/Denver
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+    expose:
+      - "5432"
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U audimeta -d audimeta"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    networks:
+      - audimeta-network
+
+  # ===========================================
+  # Redis (Rate Limiting & Caching)
+  # ===========================================
+  redis:
+    image: redis:7-alpine
+    container_name: audimeta-redis
+    restart: unless-stopped
+    
+    volumes:
+      - redis_data:/data
+    
+    expose:
+      - "6379"
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    networks:
+      - audimeta-network
+
+networks:
+  audimeta-network:
+    driver: bridge
+    name: audimeta-network
+
+volumes:
+  postgres_data:
+    driver: local
+    name: audimeta-postgres-data
+  redis_data:
+    driver: local
+    name: audimeta-redis-data
