@@ -13,8 +13,9 @@ import retryOnUniqueViolation from './parallel_helper.js'
 
 export class AuthorHelper {
   static async get(payload: Infer<typeof getBasicValidator>) {
+    
     let authors = await Author.query().where('asin', payload.asin)
-
+    
     const region = payload.region
     // Sort authors so the requested region is first
     authors = authors.sort((a) => {
@@ -30,31 +31,43 @@ export class AuthorHelper {
       author = authors[0]
     }
 
-    if (
+if (
       !payload.cache ||
       !author ||
       author.region !== payload.region ||
       ((!author.description || author.image) && !author.fetchedDescription)
     ) {
-      const newAuthor = await AuthorHelper.fetchFromAudible(
-        payload,
-        !author || author.region !== payload.region ? null : author
-      )
-      if (newAuthor) {
-        author = newAuthor
+      
+      try {
+        const newAuthor = await AuthorHelper.fetchFromAudible(
+          payload,
+          !author || author.region !== payload.region ? null : author
+        )
+        
+        if (newAuthor) {
+          author = newAuthor
+        }
+      } catch (error) {
+        
       }
+      
     }
 
+    
     return author
   }
 
-  private static async getAuthorPage(
+private static async getAuthorPage(
     payload: Infer<typeof getBasicValidator>,
     token?: string | null
   ) {
     // The region is not important for authors.
     // Only the language is actually important
     // Still, as it's simple to do, we keep the region here. Also for legacy reasons
+    const url = `https://api.audible${regionMap[payload.region]}/1.0/screens/audible-android-author-detail/` + payload.asin
+    const headers = { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders }
+    
+    
     return await axios.get(
       `https://api.audible${regionMap[payload.region]}/1.0/screens/audible-android-author-detail/` +
         payload.asin,
@@ -92,12 +105,20 @@ export class AuthorHelper {
 
     if (!author) author = new Author()
 
-    if (response.status === 200) {
+if (response.status === 200) {
       const json: any = response.data
-      if (!json || Object.keys(response.data.page_details?.model || {}).length === 0) {
+      // Check if we have either page_details or sections with data
+      const hasPageDetails = json?.page_details?.model && Object.keys(json.page_details.model).length > 0
+      const hasSections = json?.sections && json.sections.length > 0
+      
+      
+      
+      if (!json || (!hasPageDetails && !hasSections)) {
+        
         throw new NotFoundException()
       }
-
+      
+      
       return await AuthorHelper.saveResponse(json, payload, author)
     }
 
@@ -123,15 +144,32 @@ export class AuthorHelper {
     }
     if (json.page_details?.model?.title) {
       author.name = json.page_details?.model?.title?.replace('\t', '').trim() || ''
+    } else {
+      // Fallback: extract author name from book data in sections
+      for (const section of sections) {
+        for (const row of section?.model?.rows || []) {
+          const authors = row?.product_metadata?.authors || []
+          const matchingAuthor = authors.find((a: any) => a.asin === payload.asin)
+          if (matchingAuthor?.name) {
+            author.name = matchingAuthor.name.replace('\t', '').trim()
+            break
+          }
+        }
+        if (author.name) break
+      }
     }
     if (!author.region) {
       author.region = payload.region
     }
     author.asin = payload.asin?.replace('\t', '').trim() || ''
 
+    
+
     return await retryOnUniqueViolation(async () => {
       const serializedAuthor = author.serialize()
+      
       const { id, asin, region, name, ...rest } = serializedAuthor
+      
 
       return await Author.updateOrCreate(
         { asin, region, name },
@@ -147,45 +185,39 @@ export class AuthorHelper {
     payload: Infer<typeof authorBookValidator>
   ): Promise<Book[] | null> {
     let author = await Author.query().where('asin', payload.asin).first()
-
     if (!author) {
       author = await AuthorHelper.fetchFromAudible({ ...payload })
     }
-
     if (!author) {
       throw new NotFoundException()
     }
 
     const asins: string[] = []
-    let paginationToken: string | null = null
-    let page: number = 0
-    let firstRun: boolean = true
-
     const startTime = DateTime.now()
     const ctx = HttpContext.get()
-
-    while ((firstRun || paginationToken) && page <= 10) {
-      firstRun = false
-      const authorResponse = await AuthorHelper.getAuthorPage(payload, paginationToken)
-
-      if (authorResponse.data) {
-        let found = false
-        for (const section of authorResponse.data.sections) {
-          if (section?.model?.rows && section?.pagination != null) {
-            found = true
-            for (const item of section.model.rows) {
-              if (item.product_metadata && item.product_metadata.asin) {
-                asins.push(item.product_metadata.asin)
-              }
-            }
-          }
-          if (found) {
-            paginationToken = section.pagination
-            break
-          }
+    
+    // Use catalog search by author name (more reliable than ASIN)
+    const response = await axios.get(
+      `https://api.audible${regionMap[payload.region]}/1.0/catalog/products`,
+      {
+        headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
+        params: {
+          author: author.name,
+          num_results: 50,
+          response_groups: 'product_desc,contributors,series,product_attrs',
+          sort_by: '-ReleaseDate'
         }
       }
-      page++
+    )
+    
+    if (response.data?.products && response.data.products.length > 0) {
+      for (const product of response.data.products) {
+        // Verify the author ASIN matches to filter out false positives
+        const matchesAuthor = product.authors?.some((a: any) => a.asin === payload.asin)
+        if (product.asin && matchesAuthor && !asins.includes(product.asin)) {
+          asins.push(product.asin)
+        }
+      }
     }
 
     if (ctx)

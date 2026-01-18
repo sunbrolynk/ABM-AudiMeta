@@ -70,7 +70,7 @@ export const localRegionMap = {
 }
 
 export const audibleHeaders = {
-  'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 15); com.audible.application',
+  'User-Agent': 'Audible/4.15.0 Android/14 Build/SM-S928U',
   'Content-Type': 'application/json',
   'Accept-Encoding': 'gzip',
   'Accept-Charset': 'utf-8',
@@ -78,12 +78,18 @@ export const audibleHeaders = {
 }
 
 export function getAudibleExtraHeaders(region?: Infer<typeof regionValidation>) {
-  return {
+  const deviceId = env.get('DEVICE_ID')
+  const headers: Record<string, string | number> = {
     'ACCEPTED-LANGUAGE': region ? localRegionMap[region] : 'en-US',
     'accept-language': region ? localRegionMap[region] : 'en-US',
     'X-ADP-SW': Math.floor(Math.random() * 89999999) + 10000000,
-    'X-Device-Type-Id': env.get('DEVICE_ID'),
-    'User-Agent':
-      'Dalvik/2.1.0 (Linux; U; Android 15; good_phone Build/AAAA.240000.005); com.audible.application',
+    'User-Agent': 'Audible/4.15.0 Android/14 Build/SM-S928U',
   }
+  
+  // Only include X-Device-Type-Id if it's set and not empty
+  if (deviceId && deviceId.trim() !== '') {
+    headers['X-Device-Type-Id'] = deviceId
+  }
+  
+  return headers
 }
