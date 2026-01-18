@@ -47,6 +47,13 @@ router.get('/chapters/:asin', [BooksController, 'chapters']).use(cacheLimit).use
 
 router.get('/author', [AuthorsController, 'search']).use(cacheLimit).use(itemLimit)
 
+// Name-based author books search (for authors without ASIN)
+router
+  .get('/author/books', [AuthorsController, 'booksByName'])
+  .use(cacheLimit)
+  .use(itemLimit)
+  .use(extremeLimit)
+
 router.get('/author/:asin', [AuthorsController, 'index']).use(cacheLimit).use(itemLimit)
 
 router
@@ -54,6 +61,7 @@ router
   .use(cacheLimit)
   .use(itemLimit)
   .use(extremeLimit)
+
 // Legacy route for backward compatibility
 router
   .get('/author/books/:asin', [AuthorsController, 'books'])

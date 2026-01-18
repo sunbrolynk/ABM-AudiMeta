@@ -143,6 +143,14 @@ export const authorBookValidator = vine.compile(
   })
 )
 
+export const authorBookByNameValidator = vine.compile(
+  vine.object({
+    name: vine.string().minLength(1),
+    region: regionValidation,
+    cache: cacheValidation,
+  })
+)
+
 export const searchAuthorValidator = vine.compile(
   vine.object({
     region: regionValidation,

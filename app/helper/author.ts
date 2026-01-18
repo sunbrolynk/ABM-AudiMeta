@@ -1,5 +1,5 @@
 import { Infer } from '@vinejs/vine/types'
-import { authorBookValidator, getBasicValidator, searchAuthorValidator } from '#validators/common'
+import { authorBookByNameValidator, authorBookValidator, getBasicValidator, searchAuthorValidator } from '#validators/common'
 import Author from '#models/author'
 import axios from 'axios'
 import { audibleHeaders, getAudibleExtraHeaders, regionMap } from '#config/app'
@@ -267,6 +267,70 @@ if (response.status === 200) {
       throw new NotFoundException()
     }
 
+    return await new BookHelper().getOrFetchBooks(asins, payload.region, true)
+  }
+
+  static async getBooksByAuthorName(
+    payload: Infer<typeof authorBookByNameValidator>
+  ): Promise<Book[] | null> {
+    const asins: string[] = []
+    const startTime = DateTime.now()
+    const ctx = HttpContext.get()
+    
+    const pageSize = 50
+    let page = 0
+    let hasMore = true
+    
+    while (hasMore && page <= 20) {
+      const response = await axios.get(
+        `https://api.audible${regionMap[payload.region]}/1.0/catalog/products`,
+        {
+          headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
+          params: {
+            author: payload.name,
+            num_results: pageSize,
+            page: page,
+            response_groups: 'product_desc,contributors,series,product_attrs,media',
+            sort_by: '-ReleaseDate'
+          }
+        }
+      )
+      
+      if (response.data?.products && response.data.products.length > 0) {
+        for (const product of response.data.products) {
+          // Match by author name (case-insensitive) since we don't have ASIN
+          const matchesAuthor = product.authors?.some(
+            (a: any) => a.name?.toLowerCase() === payload.name.toLowerCase()
+          )
+          // Filter to English only
+          const isEnglish = product.language?.toLowerCase().startsWith('english') || 
+                            product.language?.toLowerCase() === 'englisch'
+          
+          if (product.asin && matchesAuthor && isEnglish && !asins.includes(product.asin)) {
+            asins.push(product.asin)
+          }
+        }
+        
+        hasMore = response.data.products.length >= pageSize
+        page++
+      } else {
+        hasMore = false
+      }
+    }
+    
+    if (ctx)
+      void ctx.logger.info({
+        message: `Requested Audible Author Books By Name`,
+        author_name: payload.name,
+        author_book_num: asins.length,
+        pages_fetched: page,
+        author_book_took: Math.abs(startTime.diffNow().as('milliseconds')),
+      })
+    
+    if (asins.length === 0) {
+      throw new NotFoundException()
+    }
+    
     return await new BookHelper().getOrFetchBooks(asins, payload.region, true)
   }
 
