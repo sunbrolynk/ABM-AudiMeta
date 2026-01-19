@@ -8,7 +8,6 @@
 | to JavaScript data types.
 |
 */
-
 import { Env } from '@adonisjs/core/env'
 
 export default await Env.create(new URL('../', import.meta.url), {
@@ -36,25 +35,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   REDIS_PASSWORD: Env.schema.string.optional(),
 
   AXIOM_DATASET: Env.schema.string.optional(),
-
   AXIOM_TOKEN: Env.schema.string.optional(),
-
-  /*
-  |----------------------------------------------------------
-  | Variables for configuring the limiter package
-  |----------------------------------------------------------
-  */
-  LIMITER_STORE: Env.schema.enum(['redis', 'memory'] as const),
-
-  RATE_SEARCH: Env.schema.number(),
-
-  RATE_ITEM: Env.schema.number(),
-
-  RATE_EXTREME: Env.schema.number(),
-
-  RATE_CACHE: Env.schema.number(),
-
-  RATE_SERIES: Env.schema.number(),
 
   BLACKLISTED_USER_AGENTS: Env.schema.string.optional(),
 })

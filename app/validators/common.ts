@@ -63,7 +63,7 @@ export const cacheValidation = vine
   .boolean()
   .parse((v) => {
     if (v === undefined) {
-      return true
+      return false
     }
     if (typeof v !== 'boolean') {
       return v
@@ -71,7 +71,7 @@ export const cacheValidation = vine
     return v
   })
   .optional()
-  .transform((val) => (val !== undefined ? val : true))
+  .transform((val) => (val !== undefined ? val : false))
 
 export const commonValidator = vine.object({
   page: pageValidation,

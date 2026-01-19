@@ -12,22 +12,39 @@ import Series from '#models/series'
 
 export class SeriesHelper {
   static async get(payload: Infer<typeof getBasicValidator>) {
-    let series = await Series.query().where('asin', payload.asin).first()
-
-    if (!payload.cache || !series || (!series.description && !series.fetchedDescription)) {
-      const newSeries = await SeriesHelper.fetchFromAudible(payload, series)
-      if (newSeries) {
-        series = newSeries
+    // If cache=true, check DB first
+    if (payload.cache) {
+      const cachedSeries = await Series.query()
+        .where('asin', payload.asin)
+        .first()
+      
+      if (cachedSeries) {
+        return cachedSeries
       }
     }
-
-    if (!series) {
-      throw new NotFoundException()
+    
+    // Default: Audible-first approach
+    try {
+      const freshSeries = await SeriesHelper.fetchFromAudible(payload, null)
+      if (freshSeries) {
+        return freshSeries
+      }
+    } catch (error) {
+      // Audible failed - fall back to DB cache
+      console.log('[SeriesHelper.get] Audible fetch failed, checking DB cache')
     }
-
-    return series
+    
+    // Fallback: check database cache
+    const cachedSeries = await Series.query()
+      .where('asin', payload.asin)
+      .first()
+    
+    if (cachedSeries) {
+      return cachedSeries
+    }
+    
+    throw new NotFoundException()
   }
-
   private static async getSeriesPage(payload: Infer<typeof getBasicValidator>) {
     return await axios.get(
       `https://api.audible${regionMap[payload.region]}/1.0/catalog/products/` + payload.asin,
@@ -147,7 +164,7 @@ export class SeriesHelper {
       books = await new BookHelper().getOrFetchBooks(
         asins,
         payload.region,
-        true,
+        false,
         sortByEpisode,
         false
       )

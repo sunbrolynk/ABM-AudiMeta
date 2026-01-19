@@ -89,7 +89,7 @@ export class SearchHelper {
         return []
       }
 
-      return await new BookHelper().getOrFetchBooks(asins, payload.region, true)
+      return await new BookHelper().getOrFetchBooks(asins, payload.region, false)
     }
 
     return []

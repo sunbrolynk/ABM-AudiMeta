@@ -20,20 +20,13 @@ export default class CacheMiddleware {
 
     const cacheKey = `${ctx.request.url(false)}?${params.toString()}`
 
-    if (queryParams.cache && `${queryParams.cache}`.toLowerCase() === 'false') {
-      const cachedRequest = await next()
-
-      await this.cacheResponse(ctx, cacheKey)
-
-      return cachedRequest
-    }
-
-    if (!ctx.request.url().includes('api-docs') && !ctx.request.url().includes('openapi')) {
+    // Only serve from cache if cache=true is explicitly set (Audible-first approach)
+    const shouldUseCache = queryParams.cache && `${queryParams.cache}`.toLowerCase() === 'true'
+    
+    if (shouldUseCache && !ctx.request.url().includes('api-docs') && !ctx.request.url().includes('openapi')) {
       const cachedResponse = await cache.get({ key: cacheKey })
       if (cachedResponse) {
         ctx.logger.info({ cacheKey }, 'Serving from cache')
-        ctx.response.header('x-ratelimit-limit', 10000)
-        ctx.response.header('x-ratelimit-remaining', 10000)
         ctx.response.header('x-cached', true)
         return ctx.response.send(JSON.parse(cachedResponse))
       }

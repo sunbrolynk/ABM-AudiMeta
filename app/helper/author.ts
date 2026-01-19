@@ -13,50 +13,41 @@ import retryOnUniqueViolation from './parallel_helper.js'
 
 export class AuthorHelper {
   static async get(payload: Infer<typeof getBasicValidator>) {
-    
-    let authors = await Author.query().where('asin', payload.asin)
-    
-    const region = payload.region
-    // Sort authors so the requested region is first
-    authors = authors.sort((a) => {
-      if (a.regions.includes(region)) {
-        return -1
-      }
-      return 1
-    })
-
-    let author: Author | null = null
-
-    if (authors.length > 0) {
-      author = authors[0]
-    }
-
-if (
-      !payload.cache ||
-      !author ||
-      author.region !== payload.region ||
-      ((!author.description || author.image) && !author.fetchedDescription)
-    ) {
+    // If cache=true, check DB first
+    if (payload.cache) {
+      const cachedAuthor = await Author.query()
+        .where('asin', payload.asin)
+        .where('region', payload.region)
+        .first()
       
-      try {
-        const newAuthor = await AuthorHelper.fetchFromAudible(
-          payload,
-          !author || author.region !== payload.region ? null : author
-        )
-        
-        if (newAuthor) {
-          author = newAuthor
-        }
-      } catch (error) {
-        
+      if (cachedAuthor) {
+        return cachedAuthor
       }
-      
     }
-
     
-    return author
+    // Default: Audible-first approach
+    try {
+      const freshAuthor = await AuthorHelper.fetchFromAudible(payload, null)
+      if (freshAuthor) {
+        return freshAuthor
+      }
+    } catch (error) {
+      // Audible failed - fall back to DB cache
+      console.log('[AuthorHelper.get] Audible fetch failed, checking DB cache')
+    }
+    
+    // Fallback: check database cache
+    const cachedAuthor = await Author.query()
+      .where('asin', payload.asin)
+      .where('region', payload.region)
+      .first()
+    
+    if (cachedAuthor) {
+      return cachedAuthor
+    }
+    
+    throw new NotFoundException()
   }
-
 private static async getAuthorPage(
     payload: Infer<typeof getBasicValidator>,
     token?: string | null
@@ -105,6 +96,8 @@ private static async getAuthorPage(
         },
       }
     )
+    console.log('[DEBUG fetchFromAudible] Response status:', response.status)
+    console.log('[DEBUG fetchFromAudible] Has contributor:', !!response.data?.contributor)
 
     if (ctx)
       void ctx.logger.info({
@@ -256,7 +249,7 @@ private static async getAuthorPage(
       throw new NotFoundException()
     }
 
-    return await new BookHelper().getOrFetchBooks(asins, payload.region, true)
+    return await new BookHelper().getOrFetchBooks(asins, payload.region, false)
   }
 
   static async getBooksByAuthorName(
@@ -320,7 +313,7 @@ private static async getAuthorPage(
       throw new NotFoundException()
     }
     
-    return await new BookHelper().getOrFetchBooks(asins, payload.region, true)
+    return await new BookHelper().getOrFetchBooks(asins, payload.region, false)
   }
 
   static async search(payload: Infer<typeof searchAuthorValidator>) {
@@ -374,7 +367,7 @@ private static async getAuthorPage(
           const author = await AuthorHelper.get({
             asin: asin,
             region: payload.region,
-            cache: true,
+            cache: false,
           })
           return author || null
         })

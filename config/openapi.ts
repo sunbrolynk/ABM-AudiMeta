@@ -127,13 +127,13 @@ export const cacheApiQuery = (required: boolean = false) =>
   ApiQuery({
     name: 'cache',
     description:
-      'Whether to use the cache for the request. Defaults to true. If set to false, the cache will be bypassed. This will lower the amount of requests you can make in the current time window.',
+      'Whether to use the cache for the request. Defaults to false (Audible-first). Set to true to use cached data instead of fetching fresh from Audible.',
     type: 'boolean',
-    example: true,
+    example: false,
     required: required,
     schema: {
       type: 'boolean',
-      default: true,
+      default: false,
     },
   })
 
@@ -177,26 +177,12 @@ export const limitApiQuery = (required: boolean = false) =>
 
 // Rate Limit Headers
 
-const rateLimitHeaders = {
-  'x-ratelimit-limit': {
-    description: 'The maximum number of requests you can make in the current time window.',
-    schema: {
-      type: 'integer',
-      example: 100,
-    },
-  },
-  'x-ratelimit-remaining': {
-    description: 'The number of requests you have left in the current time window.',
-    schema: {
-      type: 'integer',
-      example: 100,
-    },
-  },
+const responseHeaders = {
   'x-cached': {
     description: 'Indicates whether the response was served from cache.',
     schema: {
       type: 'boolean',
-      example: true,
+      example: false,
     },
   },
 }
@@ -206,7 +192,7 @@ const rateLimitHeaders = {
 export const successApiResponse = (options: ApiResponseOptions) =>
   ApiResponse({
     // @ts-ignore
-    headers: { ...rateLimitHeaders },
+    headers: { ...responseHeaders },
     status: 200,
     description: 'Success',
     ...options,
@@ -215,7 +201,7 @@ export const successApiResponse = (options: ApiResponseOptions) =>
 export const notFoundApiResponse = () =>
   ApiResponse({
     // @ts-ignore
-    headers: { ...rateLimitHeaders },
+    headers: { ...responseHeaders },
     status: 404,
     description: 'Resource not found',
     mediaType: 'application/json',

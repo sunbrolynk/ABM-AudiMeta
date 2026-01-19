@@ -530,7 +530,7 @@ export class BookHelper {
 
     if (!book) {
       await retryOnUniqueViolation(async () => {
-        return await new BookHelper().getOrFetchBooks([asin], region, true)
+        return await new BookHelper().getOrFetchBooks([asin], region, false)
       })
     }
 
