@@ -19,7 +19,7 @@ export class MinimalAuthorDto extends BaseModelDto {
   @ApiProperty({
     description: 'The name of the author.',
     type: 'string',
-    example: 'John Doe',
+    example: 'Brandon Sanderson',
     nullable: true,
   })
   declare name: string

@@ -95,7 +95,16 @@ private static async getAuthorPage(
     const startTime = new Date()
     const ctx = HttpContext.get()
 
-    const response = await AuthorHelper.getAuthorPage(payload)
+    // Use the contributors endpoint which returns better data (image + bio)
+    const response = await axios.get(
+      `https://api.audible.com/1.0/catalog/contributors/${payload.asin}`,
+      {
+        headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
+        params: {
+          locale: 'en-US'
+        },
+      }
+    )
 
     if (ctx)
       void ctx.logger.info({
@@ -105,19 +114,12 @@ private static async getAuthorPage(
 
     if (!author) author = new Author()
 
-if (response.status === 200) {
+    if (response.status === 200) {
       const json: any = response.data
-      // Check if we have either page_details or sections with data
-      const hasPageDetails = json?.page_details?.model && Object.keys(json.page_details.model).length > 0
-      const hasSections = json?.sections && json.sections.length > 0
       
-      
-      
-      if (!json || (!hasPageDetails && !hasSections)) {
-        
+      if (!json?.contributor) {
         throw new NotFoundException()
       }
-      
       
       return await AuthorHelper.saveResponse(json, payload, author)
     }
@@ -130,46 +132,33 @@ if (response.status === 200) {
     payload: Infer<typeof getBasicValidator>,
     author: Author
   ) {
-    const sections = json.sections
-    for (const section of sections) {
-      if (section?.model?.person_image_url) {
-        author.image = section.model.person_image_url.replace(/\._.*_/, '')
-      }
-      for (const item of section.model.items || []) {
-        if (item.view.template === 'ExpandableText' && item.model.expandable_content) {
-          author.description = item.model.expandable_content?.value?.replace('\t', '').trim() || ''
-        }
-      }
-      author.fetchedDescription = true
+    const contributor = json.contributor
+    
+    // Extract data from the contributors endpoint format
+    if (contributor.profile_image_url) {
+      author.image = contributor.profile_image_url.replace(/\._.*_/, '')
     }
-    if (json.page_details?.model?.title) {
-      author.name = json.page_details?.model?.title?.replace('\t', '').trim() || ''
-    } else {
-      // Fallback: extract author name from book data in sections
-      for (const section of sections) {
-        for (const row of section?.model?.rows || []) {
-          const authors = row?.product_metadata?.authors || []
-          const matchingAuthor = authors.find((a: any) => a.asin === payload.asin)
-          if (matchingAuthor?.name) {
-            author.name = matchingAuthor.name.replace('\t', '').trim()
-            break
-          }
-        }
-        if (author.name) break
-      }
+    
+    if (contributor.bio) {
+      author.description = contributor.bio.replace('\t', '').trim()
     }
+    
+    if (contributor.name) {
+      author.name = contributor.name.replace('\t', '').trim()
+    }
+    
+    author.fetchedDescription = true
+    
     if (!author.region) {
       author.region = payload.region
     }
-    author.asin = payload.asin?.replace('\t', '').trim() || ''
-
     
+    author.asin = payload.asin?.replace('\t', '').trim() || ''
 
     return await retryOnUniqueViolation(async () => {
       const serializedAuthor = author.serialize()
       
       const { id, asin, region, name, ...rest } = serializedAuthor
-      
 
       return await Author.updateOrCreate(
         { asin, region, name },
