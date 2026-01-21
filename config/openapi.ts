@@ -3,8 +3,9 @@ import {
   ApiProperty,
   ApiQuery,
   ApiResponse,
-  ApiResponseOptions,
+
   ApiParam,
+
 } from '@foadonis/openapi/decorators'
 
 export default defineConfig({
@@ -189,7 +190,7 @@ const responseHeaders = {
 
 // Responses
 
-export const successApiResponse = (options: ApiResponseOptions) =>
+export const successApiResponse = (options: Parameters<typeof ApiResponse>[0]) =>
   ApiResponse({
     // @ts-ignore
     headers: { ...responseHeaders },

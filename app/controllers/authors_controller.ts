@@ -1,7 +1,7 @@
 // import type { HttpContext } from '@adonisjs/core/http'
 
 import { HttpContext } from '@adonisjs/core/http'
-import { authorBookByNameValidator, authorBookValidator, getBasicValidator, paginationValidator, searchAuthorValidator } from '#validators/common'
+import { authorBookByNameValidator, authorBookValidator, getBasicValidator, searchAuthorValidator } from '#validators/common'
 import { AuthorHelper } from '../helper/author.js'
 import BookDto from '#dtos/book'
 import { AuthorDto } from '#dtos/author'

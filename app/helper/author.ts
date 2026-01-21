@@ -48,37 +48,6 @@ export class AuthorHelper {
     
     throw new NotFoundException()
   }
-private static async getAuthorPage(
-    payload: Infer<typeof getBasicValidator>,
-    token?: string | null
-  ) {
-    // The region is not important for authors.
-    // Only the language is actually important
-    // Still, as it's simple to do, we keep the region here. Also for legacy reasons
-    const url = `https://api.audible${regionMap[payload.region]}/1.0/screens/audible-android-author-detail/` + payload.asin
-    const headers = { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders }
-    
-    
-    return await axios.get(
-      `https://api.audible${regionMap[payload.region]}/1.0/screens/audible-android-author-detail/` +
-        payload.asin,
-      {
-        headers: { ...getAudibleExtraHeaders(payload.region), ...audibleHeaders },
-        params: {
-          tabId: 'titles',
-          author_asin: payload.asin,
-          title_source: 'all',
-          session_id: AudibleHelper.generateRandomSessionId(),
-          applicationType: 'Android_App',
-          local_time: new Date().toISOString(),
-          response_groups: 'always-returned',
-          surface: 'Android',
-          pageSectionContinuationToken: token,
-        },
-      }
-    )
-  }
-
   private static async fetchFromAudible(
     payload: Infer<typeof getBasicValidator>,
     author?: Author | null
@@ -258,6 +227,7 @@ private static async getAuthorPage(
     const asins: string[] = []
     const startTime = DateTime.now()
     const ctx = HttpContext.get()
+    console.log("DEBUG getBooksByAuthorName called with:", payload)
     
     const pageSize = 50
     let page = 0

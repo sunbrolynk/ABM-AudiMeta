@@ -5,7 +5,7 @@ import {
   cacheApiQuery,
   limitApiQuery,
   notFoundApiResponse,
-  pageApiQuery,
+
   successApiResponse,
 } from '#config/openapi'
 import Book from '#models/book'

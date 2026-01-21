@@ -118,13 +118,29 @@ export class BookHelper {
     shouldThrow: boolean = true
   ): Promise<Book[]> {
     if ((!asins || asins.length === 0) && updateBooks.length === 0) return []
-
     const ctx = HttpContext.get()
-
     asins = Array.from(new Set([...asins, ...updateBooks.map((book) => book.asin)]))
-
+    
+    // Audible API has 50 ASIN limit - recursively chunk if needed
+    if (asins.length > 50) {
+      const chunks: string[][] = []
+      for (let i = 0; i < asins.length; i += 50) {
+        chunks.push(asins.slice(i, i + 50))
+      }
+      const results = await Promise.all(
+        chunks.map((chunk, index) =>
+          new Promise<Book[]>((resolve) =>
+            setTimeout(
+              () => resolve(this.getBooksFromAudible(chunk, region, [], shouldThrow)),
+              index * 250
+            )
+          )
+        )
+      )
+      return results.flat()
+    }
+    
     const startTime = DateTime.now()
-
     const reqParams = {
       response_groups:
         'media, product_attrs, product_desc, product_details, product_extended_attrs, product_plans, rating, series, relationships, review_attrs, category_ladders, customer_rights',
