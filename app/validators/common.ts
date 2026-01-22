@@ -92,7 +92,7 @@ export const getBooksValidator = vine.compile(
         return v
       })
       .compact()
-      .maxLength(50)
+      .maxLength(1000)
       .distinct()
       .optional()
       .requiredIfMissing('asin'),

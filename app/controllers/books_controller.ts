@@ -35,9 +35,7 @@ export default class BooksController {
   @successApiResponse({ type: [BookDto] })
   async index({ request }: HttpContext) {
     const payload = await getBooksValidator.validate({ ...request.qs(), ...request.params() })
-
     const asins: string[] = []
-
     if (payload.asins) {
       asins.push(...payload.asins)
     } else if (payload.asin) {
@@ -46,17 +44,24 @@ export default class BooksController {
     if (asins.length === 0) {
       return []
     }
-
-    const books = await new BookHelper().getOrFetchBooks(asins, payload.region, payload.cache)
-
-    if (books.length === 0) {
-      throw new NotFoundException()
-    }
-
+    const books = await new BookHelper().getOrFetchBooks(asins, payload.region, payload.cache, false, false)
+    
+    // Single ASIN request - throw if not found (backward compatible)
     if (payload.asin) {
+      if (books.length === 0) {
+        throw new NotFoundException()
+      }
       return new BookDto(books[0])
     }
-    return BookDto.fromArray(books)
+    
+    // Batch request - return found books + list of not found ASINs
+    const foundAsins = books.map(b => b.asin)
+    const notFoundAsins = asins.filter(a => !foundAsins.includes(a))
+    
+    return {
+      books: BookDto.fromArray(books),
+      notFound: notFoundAsins
+    }
   }
 
   @ApiOperation({

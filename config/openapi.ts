@@ -164,7 +164,7 @@ export const pageApiQuery = (required: boolean = false) =>
 export const limitApiQuery = (required: boolean = false) =>
   ApiQuery({
     name: 'limit',
-    description: 'The maximum number of items to return per page. Defaults to 10. Maximum is 50.',
+    description: 'The maximum number of items to return per page. Defaults to 10. Maximum is 1000.',
     type: 'integer',
     example: 10,
     required: required,
@@ -172,7 +172,7 @@ export const limitApiQuery = (required: boolean = false) =>
       type: 'integer',
       default: 10,
       minimum: 1,
-      maximum: 50,
+      maximum: 1000,
     },
   })
 
