@@ -2,7 +2,6 @@
 
 A fast and flexible Audible metadata provider with extensive querying options and bulk search capabilities.
 
-> **Note:** This is a fork of [Vito0912/audimeta](https://github.com/Vito0912/audimeta) with modifications for use with [Audiobook Manager (ABM)](https://github.com/sunbrolynk/audiobook-manager). Thanks to Vito0912 for creating the original project!
 
 ## Instance
 
@@ -83,7 +82,7 @@ Please check the  for detailed information on the available query parameters. So
 
 ### Ideas and Attribution
 
-- **Original Project:** [Vito0912/audimeta](https://github.com/Vito0912/audimeta) - Thanks for creating this awesome metadata provider! We would have nothing if not for your awesome work!
+- **Original Project:** [Vito0912/audimeta](https://github.com/Vito0912/audimeta)
 - **API Documentation:** [External Audible API](https://audible.readthedocs.io/en/latest/misc/external_api.html)
 - **OpenAPI Tools:** [Friends of Adonis](https://friendsofadonis.com/docs/openapi)
 - **Logging:** [Axiom](https://axiom.co)
