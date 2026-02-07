@@ -25,7 +25,7 @@ export class SeriesHelper {
     
     // Default: Audible-first approach
     try {
-      const freshSeries = await SeriesHelper.fetchFromAudible(payload, null)
+      const freshSeries = await SeriesHelper.fetchFromAudible(payload)
       if (freshSeries) {
         return freshSeries
       }
@@ -45,6 +45,7 @@ export class SeriesHelper {
     
     throw new NotFoundException()
   }
+
   private static async getSeriesPage(payload: Infer<typeof getBasicValidator>) {
     return await axios.get(
       `https://api.audible${regionMap[payload.region]}/1.0/catalog/products/` + payload.asin,
@@ -58,8 +59,7 @@ export class SeriesHelper {
   }
 
   private static async fetchFromAudible(
-    payload: Infer<typeof getBasicValidator>,
-    series?: Series | null
+    payload: Infer<typeof getBasicValidator>
   ): Promise<Series | null> {
     const startTime = new Date()
     const ctx = HttpContext.get()
@@ -86,8 +86,16 @@ export class SeriesHelper {
         throw new NotFoundException()
       }
 
-      if (!series) series = new Series()
+      // Fetch existing series from DB or create new one
+      let series = await Series.query()
+        .where('asin', payload.asin)
+        .first()
+      
+      if (!series) {
+        series = new Series()
+      }
 
+      // Always update with fresh data from Audible
       if (json.product!.publisher_summary) {
         series.description = json.product!.publisher_summary
       }
@@ -95,6 +103,7 @@ export class SeriesHelper {
       series.asin = json.product!.asin
       series.title = json.product!.title
       series.region = payload.region
+      
       return retryOnUniqueViolation(async () => {
         return await series!.save()
       })
