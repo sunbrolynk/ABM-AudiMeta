@@ -1,7 +1,8 @@
-# AudiMeta
+# AudiMeta (ABM Fork)
 
 A fast and flexible Audible metadata provider with extensive querying options and bulk search capabilities.
 
+> **Note:** This is a fork of [Vito0912/audimeta](https://github.com/Vito0912/audimeta) with modifications for use with [Audiobook Manager (ABM)](https://github.com/sunbrolynk/audiobook-manager). Thanks to Vito0912 for creating the original project!
 
 ## Instance
 
@@ -25,7 +26,7 @@ View the complete API documentation via the OpenAPI specification:
 
 ### Highlights
 
-- Bulk search for ASINs (up to 50)
+- Bulk search for ASINs (up to 1000)
 - Search across regions for cached books
 - Find all books of an author or series
 
@@ -82,6 +83,7 @@ Please check the  for detailed information on the available query parameters. So
 
 ### Ideas and Attribution
 
-The source for some API endpoints came from [External Audible API](https://audible.readthedocs.io/en/latest/misc/external_api.html). Most have been used without this. But this was a great starting point!
-Thanks to [Friends of Adonis](https://friendsofadonis.com/docs/openapi) for the awesome OpenAPI documentation tool.
-Thanks to [Axiom](https://axiom.co) which provide a generous free tier for logging 5xx errors.
+- **Original Project:** [Vito0912/audimeta](https://github.com/Vito0912/audimeta) - Thanks for creating this awesome metadata provider! We would have nothing if not for your awesome work!
+- **API Documentation:** [External Audible API](https://audible.readthedocs.io/en/latest/misc/external_api.html)
+- **OpenAPI Tools:** [Friends of Adonis](https://friendsofadonis.com/docs/openapi)
+- **Logging:** [Axiom](https://axiom.co)
