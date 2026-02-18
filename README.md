@@ -2,24 +2,17 @@
 
 A fast and flexible Audible metadata provider with extensive querying options and bulk search capabilities.
 
-
 ## Instance
 
-The public instance of AudiMeta is available at [AudiMeta](https://manager.lostcartographer.xyz).  
-An uptime status page is available at .
+The public instance of AudiMeta is available at [audimeta](https://manager.lostcartographer.xyz).
+
+API documentation is served at the root of the instance via the OpenAPI specification.
 
 ## Overview
 
 AudiMeta was created to serve as a comprehensive metadata provider for Audible content, offering rich querying options and advanced search functionality.
 
 AudiMeta provides enhanced search capabilities, including bulk operations.
-
-
-## Documentation
-
-View the complete API documentation via the OpenAPI specification:
-
-- 
 
 ## Features
 
@@ -74,15 +67,27 @@ AudiMeta supports the following Audible regions:
 
 ### Region Behavior
 
-When searching for books, results will be returned regardless of regional availability by default if the books ASIN is cached.
+When searching for books, results will be returned regardless of regional availability by default if the book's ASIN is cached.
 
 ### Parameters
 
-Please check the  for detailed information on the available query parameters. Some endpoints only return cached data and do not query Audible again unless explicitly requested.
+Please check the OpenAPI documentation at the root of your instance for detailed information on available query parameters. Some endpoints only return cached data and do not query Audible again unless explicitly requested.
 
-### Ideas and Attribution
+## Data & Privacy
 
-- **Original Project:** [Vito0912/audimeta](https://github.com/Vito0912/audimeta)
-- **API Documentation:** [External Audible API](https://audible.readthedocs.io/en/latest/misc/external_api.html)
+AudiMeta logs API requests for operational and analytics purposes. See the full [Privacy Policy](PRIVACYPOLICY.md) for details.
+
+**In short:**
+
+- We log IP addresses, request metadata, and search parameters to monitor service health and understand usage patterns
+- We do not sell, share, or provide this data to any third party
+- We do not track individual users across sessions
+- IP geolocation is performed locally — no external services receive your IP
+- If you self-host your own instance, no data is sent to us — logging is entirely under your control
+
+## Attribution
+
+- **Original Project:** [Vito0912/AudiMeta](https://github.com/Vito0912/AudiMeta)
+- **API Reference:** [External Audible API](https://audible.readthedocs.io/en/latest/misc/external_api.html)
 - **OpenAPI Tools:** [Friends of Adonis](https://friendsofadonis.com/docs/openapi)
 - **Logging:** [Axiom](https://axiom.co)
