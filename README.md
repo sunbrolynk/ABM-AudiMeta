@@ -1,3 +1,9 @@
+
+> [!IMPORTANT]
+> Due to the nature of the licensing changes of the upstream-branch of this project moving to a restrictive & closed philosophy, retroactively enforcing new requirements on forks and code,this  project is being Archived and isolated effective immediatly. 
+> Please direct any questions about the changes to the upstream branch.
+
+
 # AudiMeta (ABM Fork)
 
 A fast and flexible Audible metadata provider with extensive querying options and bulk search capabilities.
